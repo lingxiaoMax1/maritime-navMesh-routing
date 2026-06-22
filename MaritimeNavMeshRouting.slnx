@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/MaritimeNavMesh.Benchmarks/MaritimeNavMesh.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/MaritimeNavMesh.Api/MaritimeNavMesh.Api.csproj" />
+    <Project Path="src/MaritimeNavMesh.Core/MaritimeNavMesh.Core.csproj" />
+    <Project Path="src/MaritimeNavMesh.IO/MaritimeNavMesh.IO.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MaritimeNavMesh.Tests/MaritimeNavMesh.Tests.csproj" />
+  </Folder>
+</Solution>
