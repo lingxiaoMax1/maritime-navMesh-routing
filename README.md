@@ -58,14 +58,46 @@ Current required files:
 
 Current sample regional artifact sizes in this repo:
 
-- `graph.bin`: `18 MB`
-- `manifest.json`: `7.2 KB`
-- `ports.json`: `129 KB`
-- `land-mask.bin`: `189 KB`
-- `edge-portals.bin`: `532 KB`
-- `ais-corridor-hints.bin`: `5.9 KB`
+| Artifact | Old Size | New Size | Reduction |
+|---|---:|---:|---:|
+| `graph.bin` | 46 MB | 18.5 MB | 27.5 MB |
+| `edge-portals.bin` | 41 MB | 0.54 MB | 40.46 MB |
+| `land-mask.bin` | 15 MB | 0.19 MB | 14.81 MB |
+| `ports.json` | 0.245 MB | 0.085 MB | 0.160 MB |
+| `manifest.json` | n/a | 0.0073 MB | n/a |
+| `ais-corridor-hints.bin` | n/a | 0.0059 MB | n/a |
+| **Core runtime total** | **102.245 MB** | **19.315 MB** | **82.93 MB** |
 
 Those files are copied in from Project 1. They are generated data, not hand-authored source.
+
+### Why the runtime bundle is compact
+
+Project 2 consumes a compact runtime contract rather than a verbose export.
+The goal is to keep the shipped artifact set small while preserving the exact routing graph, edge costs, and land-safety behavior.
+
+What stays lossless:
+
+- same routable H3 cells
+- same directed edges
+- same `edge_cost` values
+- same land-mask raster resolution and dilation
+
+What gets reconstructed at load time instead of stored verbosely on disk:
+
+- `row_ptr` is rebuilt from per-node `degree`
+- `col_idx` is rebuilt from `int16` target deltas plus overflow arrays
+- node center coordinates are derived from `node_h3_int`
+- standard H3-neighbor portal geometry is reconstructed implicitly
+- tiled land-mask payloads are decompressed on demand
+
+Short artifact summary:
+
+- `graph.bin`: compact CSR runtime graph with H3 identity, `degree`, delta-compressed targets, and exact `float32` edge costs
+- `edge-portals.bin`: sparse implicit/explicit portal contract instead of one geometry record per directed edge
+- `land-mask.bin`: tiled Web Mercator bitmask with empty-tile elimination and zlib-compressed non-empty tiles
+- `ports.json`: compact field-table schema instead of repeated JSON objects
+
+This is why Project 2 can load a regional runtime bundle of about `19.3 MB` instead of carrying a `100+ MB` verbose artifact set for the same graph.
 
 ## How the runtime works
 
@@ -216,12 +248,12 @@ and can be overridden with `VITE_API_URL`.
 ```bash
 mkdir -p src/MaritimeNavMesh.Api/artifacts
 
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.graph.bin src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.manifest.json src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.ports.json src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.land-mask.bin src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.edge-portals.bin src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.ais-corridor-hints.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.graph.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.manifest.json src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.ports.json src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.land-mask.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.edge-portals.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.ais-corridor-hints.bin src/MaritimeNavMesh.Api/artifacts/
 ```
 
 ### 2. Restore and build

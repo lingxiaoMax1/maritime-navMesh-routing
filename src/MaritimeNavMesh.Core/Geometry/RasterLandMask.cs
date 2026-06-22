@@ -14,6 +14,7 @@ public sealed class RasterLandMask
     private readonly LandMaskTileEntry[]? _tileEntries;
     private readonly Dictionary<int, byte[]>? _tilePayloadCache;
     private readonly object? _tileLoadLock;
+    private readonly int _tileCodec;
 
     public int Width { get; }
     public int Height { get; }
@@ -46,6 +47,7 @@ public sealed class RasterLandMask
         MaxY = maxY;
         DilationPixels = dilationPixels;
         _packedBits = packedBits;
+        _tileCodec = 0;
         TileWidthPixels = width;
         TileHeightPixels = height;
         TileColumnCount = 1;
@@ -66,7 +68,8 @@ public sealed class RasterLandMask
         int tileColumnCount,
         int tileRowCount,
         string tileFilePath,
-        LandMaskTileEntry[] tileEntries)
+        LandMaskTileEntry[] tileEntries,
+        int tileCodec)
     {
         if (width <= 0 || height <= 0 || pixelSizeM <= 0 || tileWidthPixels <= 0 || tileHeightPixels <= 0)
             throw new ArgumentOutOfRangeException(nameof(width), "Land-mask dimensions, tile size, and pixel size must be positive.");
@@ -86,6 +89,7 @@ public sealed class RasterLandMask
         TileRowCount = tileRowCount;
         _tileFilePath = tileFilePath;
         _tileEntries = tileEntries;
+        _tileCodec = tileCodec;
         _tilePayloadCache = new Dictionary<int, byte[]>();
         _tileLoadLock = new object();
     }
@@ -104,7 +108,8 @@ public sealed class RasterLandMask
         int tileColumnCount,
         int tileRowCount,
         string tileFilePath,
-        LandMaskTileEntry[] tileEntries)
+        LandMaskTileEntry[] tileEntries,
+        int tileCodec)
     {
         return new RasterLandMask(
             width,
@@ -120,7 +125,8 @@ public sealed class RasterLandMask
             tileColumnCount,
             tileRowCount,
             tileFilePath,
-            tileEntries);
+            tileEntries,
+            tileCodec);
     }
 
     public bool IsSegmentLandSafe(double startLon, double startLat, double endLon, double endLat)
@@ -224,32 +230,24 @@ public sealed class RasterLandMask
                 read += bytesRead;
             }
             byte[] tilePayload;
-            if (entry.UncompressedByteLength == 0)
+            if (entry.UncompressedByteLength == 0 || _tileCodec == 0)
             {
                 tilePayload = payload;
             }
+            else if (_tileCodec == 1)
+            {
+                using var compressed = new MemoryStream(payload, writable: false);
+                using var zlib = new ZLibStream(compressed, CompressionMode.Decompress);
+                using var output = new MemoryStream(entry.UncompressedByteLength);
+                zlib.CopyTo(output);
+                tilePayload = output.ToArray();
+            }
             else
             {
-                byte codec = payload[0];
-                if (codec == 0)
-                {
-                    tilePayload = payload[1..];
-                }
-                else if (codec == 1)
-                {
-                    using var compressed = new MemoryStream(payload, 1, payload.Length - 1, writable: false);
-                    using var zlib = new ZLibStream(compressed, CompressionMode.Decompress);
-                    using var output = new MemoryStream(entry.UncompressedByteLength);
-                    zlib.CopyTo(output);
-                    tilePayload = output.ToArray();
-                }
-                else
-                {
-                    throw new InvalidDataException("Unsupported land-mask tile codec.");
-                }
-                if (tilePayload.Length != entry.UncompressedByteLength)
-                    throw new InvalidDataException("Land-mask tile payload length does not match its header.");
+                throw new InvalidDataException("Unsupported land-mask tile codec.");
             }
+            if (entry.UncompressedByteLength != 0 && tilePayload.Length != entry.UncompressedByteLength)
+                throw new InvalidDataException("Land-mask tile payload length does not match its header.");
             cache[tileIndex] = tilePayload;
             return tilePayload;
         }

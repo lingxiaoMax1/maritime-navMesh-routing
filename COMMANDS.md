@@ -21,12 +21,12 @@ Copy the six Project 1 runtime files there:
 mkdir -p src/MaritimeNavMesh.Api/artifacts
 
 # Adjust source path to match your Project 1 runtime folder
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.graph.bin src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.manifest.json src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.ports.json src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.land-mask.bin src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.edge-portals.bin src/MaritimeNavMesh.Api/artifacts/
-cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/runtime/ocean-h3-r5.ais-corridor-hints.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.graph.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.manifest.json src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.ports.json src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.land-mask.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.edge-portals.bin src/MaritimeNavMesh.Api/artifacts/
+cp ../maritime-navMesh-builder/outputs/melbourne-singapore/h3_r5/ocean-h3-r5.ais-corridor-hints.bin src/MaritimeNavMesh.Api/artifacts/
 ```
 
 This is an explicit manual handoff. Project 2 has no runtime link to the Project 1

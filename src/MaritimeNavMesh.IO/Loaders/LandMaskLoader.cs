@@ -97,7 +97,8 @@ public static class LandMaskLoader
             checked((int)tileColumns),
             checked((int)tileRows),
             path,
-            tileEntries);
+            tileEntries,
+            tileCodec: 0);
     }
 
     private static RasterLandMask LoadV3(string path, FileStream stream, BinaryReader reader)
@@ -158,6 +159,7 @@ public static class LandMaskLoader
             checked((int)tileColumns),
             checked((int)tileRows),
             path,
-            tileEntries);
+            tileEntries,
+            checked((int)tileCodec));
     }
 }
